@@ -1,8 +1,9 @@
 import os
-
+import shutil
 from flask import Flask, request, render_template, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 from datetime import datetime
+import json
 
 # Import modelling scripts
 import src.preprocessing as preprocessing
@@ -16,7 +17,15 @@ def allowed_file(filename):
 
 def create_app():
     app = Flask(__name__)
+    app.static_folder = 'static'
 
+    def clean_directiry(directory):
+        if os.path.exists(directory):
+            shutil.rmtree(directory)
+        os.makedirs(directory)
+    
+    clean_directiry('input')
+    clean_directiry('output')
     @app.route('/upload', methods=['GET', 'POST'])
     def upload():
         if request.method == 'POST':
@@ -38,8 +47,18 @@ def create_app():
                 preprocessed_df = preprocessing.run_preproc(input_df)
 
                 # Run scorer to get submission file for competition
-                submission = scorer.make_pred(preprocessed_df, save_location)
-                submission.to_csv(save_location.replace('input', 'output'), index=False)
+                submission, model, probabilities = scorer.make_pred(preprocessed_df, save_location)
+                output_filename = save_location.replace('input', 'output')
+                submission.to_csv(output_filename.replace('.csv', '_predictions.csv'), index=False)
+
+                #top 5 feature importances
+                feature_names = preprocessed_df.columns
+                top_features = scorer.get_top_features(model, feature_names)
+                with open(output_filename.replace('.csv', '_features.json'), 'w') as f:
+                    json.dump(top_features, f, ensure_ascii=False)
+                
+                #prediction distribution plot
+                scorer.plot_prediction_distribution(probabilities, output_filename.replace('.csv', '_distribution.png'))
 
                 return redirect(url_for('download'))
 

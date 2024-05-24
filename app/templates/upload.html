@@ -1,5 +1,25 @@
-<form action="/upload" method="POST" enctype="multipart/form-data">
+<!-- <form action="/upload" method="POST" enctype="multipart/form-data">
     <label for="file">File:</label>
     <input type="file" id="file" name="file"><br />
     <button>Upload</button>
-</form>
+</form> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload File</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Upload Your File</h1>
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+            <label for="file">Choose File:</label>
+            <input type="file" id="file" name="file" accept=".csv"><br />
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+</body>
+</html>
